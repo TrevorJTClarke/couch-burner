@@ -1,0 +1,15 @@
+TODO: 
+- logged in state
+  - sign for burn
+  - filter by name or id
+- scene state
+  - confirming burn TX
+  - get random scene
+  - play scene
+
+
+STARGAZE TESTNET: 
+- cw_sq721: 2092 (stars1ea3mv330ctvtvhcq2wca3qcwq6a4zt6q82awycjmxzutm2sf566qkxeh2u)
+
+
+npm install @dnd-kit/core
