@@ -9,7 +9,6 @@ import { wallets as cosmostationWallets } from '@cosmos-kit/cosmostation';
 import { wallets as leapWallets } from '@cosmos-kit/leap';
 import { GasPrice } from '@cosmjs/stargate';
 import { ApolloProvider, ApolloClient, InMemoryCache } from '@apollo/client';
-import { getSigningCosmosClientOptions } from 'stargazejs';
 
 import { TailwindModal } from '../components';
 import { networkType } from '../config';
@@ -41,7 +40,7 @@ const defaultGasForChain = (chain: Chain) => {
   return { gasPrice };
 }
 
-function AstralApp({ Component, pageProps }: AppProps) {
+function App({ Component, pageProps }: AppProps) {
   const signerOptions: SignerOptions = {
     signingStargate: defaultGasForChain,
     signingCosmwasm: defaultGasForChain,
@@ -57,8 +56,8 @@ function AstralApp({ Component, pageProps }: AppProps) {
           projectId: 'a8510432ebb71e6948cfd6cde54b70f7',
           relayUrl: 'wss://relay.walletconnect.org',
           metadata: {
-            name: 'Astral',
-            description: 'NFT Bridge',
+            name: 'Stargaze NFT Burner',
+            description: 'Be bad, burn some NFTs',
             url: 'https://stargaze.zone/',
             icons: [],
           },
@@ -86,4 +85,4 @@ function AstralApp({ Component, pageProps }: AppProps) {
   );
 }
 
-export default AstralApp;
+export default App;

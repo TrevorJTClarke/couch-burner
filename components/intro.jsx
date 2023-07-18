@@ -59,7 +59,7 @@ export function Intro({ openDialog }) {
               <ul role="list" className="absolute h-full w-full p-0" style={({ left: 'calc(50% - 120px)' })}>
                 {exampleNFTs.map((src, i) => (
                   <li className="inline-flex burner" key={src} id={`burner-${i}`}>
-                    <img className="pointer-events-none rounded bg-gray-50 m-0" src={src} />
+                    <img className="pointer-events-none rounded bg-gray-50 m-0" src={src} alt="nft" />
                   </li>
                 ))}
               </ul>
@@ -122,7 +122,7 @@ export function Intro({ openDialog }) {
               <h2 className="text-base font-semibold leading-7 text-pink-600">Burn, Baby, Burn</h2>
               <p className="mt-2 text-3xl font-bold tracking-tight text-gray-50 sm:text-4xl">Burn NFTs</p>
               <p className="mt-6 text-lg leading-8 text-gray-600">
-                You've always wanted to clear out those unwanted NFTs. Maybe they got spam dropped? Maybe you want to make a collection more rare? Be bad, light a match under those digital collectibles.
+                You&apos;ve always wanted to clear out those unwanted NFTs. Maybe they got spam dropped? Maybe you want to make a collection more rare? Be bad, light a match under those digital collectibles.
               </p>
               <br/>
               <button className="button-3d" onClick={onClick}>

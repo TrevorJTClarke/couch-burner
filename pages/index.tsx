@@ -1,7 +1,7 @@
 import Image from 'next/image'
 import { Fragment, useState, useEffect } from 'react'
 import { useChain, useManager } from '@cosmos-kit/react';
-import { WalletStatus } from '@cosmos-kit/core';
+// import { WalletStatus } from '@cosmos-kit/core';
 import { DndContext, DragOverlay } from '@dnd-kit/core'
 import { Dialog, Transition } from '@headlessui/react'
 import { useQuery, useLazyQuery } from '@apollo/client';
