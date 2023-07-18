@@ -18,6 +18,7 @@ export default function Index() {
   const [open, setOpen] = useState(false)
   const [available, setAvailable] = useState([])
   const [selected, setSelected] = useState([])
+  const [filterInput, setFilterInput] = useState('')
   const [activeId, setActiveId] = useState(null)
   const [activeTab, setActiveTab] = useState(1)
   const [activeView, setActiveView] = useState(1)
@@ -44,6 +45,29 @@ export default function Index() {
         return prev
       })
       setActiveId(null)
+    }
+  }
+
+  function removeItem(item) {
+    setOpen(true)
+    setSelected(prev => {
+      const n = prev.filter(p => p.imageUrl != item.imageUrl)
+      return n
+    })
+    setAvailable(prev => {
+      if (![...prev].map(p => p.imageUrl).includes(item.imageUrl)) prev.push(item)
+      return prev
+    })
+  }
+
+  function handleFilter(e) {
+    setFilterInput(`${e.target.value}`.toLowerCase())
+  }
+
+  const filterByInputText = (item) => {
+    if (!filterInput) return true
+    if (`${item.name}`.toLowerCase().includes(filterInput) || `${item.token_id}`.toLowerCase().includes(filterInput)) {
+      return true
     }
   }
 
@@ -126,7 +150,7 @@ export default function Index() {
     }
     const signerClient = await wallet.getSigningCosmWasmClient();
     try {
-      const res = await signerClient.executeMultiple(senderAddr || address, burnMsgs, 'auto')
+      const res = await signerClient.executeMultiple(senderAddr || address, burnMsgs, 'auto', '🔥 It!')
       console.log('signerClient res', res)
       // TODO:
       // if (res?.transactionHash) {
@@ -164,21 +188,11 @@ export default function Index() {
           <DragOverlay>
             {
               activeId ? (
-                <NftImage uri={activeId.imageUrl} alt={activeId.name} />
+                <NftImage uri={activeId.imageUrl} alt={activeId.name} name={activeId.name} token_id={activeId.token_id} />
               ) : null}
           </DragOverlay>
           <Transition.Root show={open} as={Fragment}>
             <Dialog as="div" className="relative z-10" onClose={setOpen}>
-
-              <DropZone id="dropzone">
-                <div className="flex gap-4 grid grid-cols-5">
-                  {selected.map((item) => (
-                    <div key={item.imageUrl}>
-                      <NftImage uri={item.imageUrl} alt={item.name} />
-                    </div>
-                  ))}
-                </div>
-              </DropZone>
 
               <div className="fixed inset-0 top-24">
                 <div className="absolute inset-0">
@@ -220,7 +234,7 @@ export default function Index() {
                                       <MagnifyingGlassIcon className="m-auto w-4 h-4" />
                                     </span>
                                   </div>
-                                  <input aria-describedby="" className="block w-2/3 rounded bg-white shadow-sm dark:bg-zinc-900 sm:text-sm text-white placeholder:text-zinc-500 focus:outline focus:outline-2 focus:outline-offset-2 focus:outline-pink-500 focus:ring-0 focus:ring-offset-0 border-zinc-300 focus:border-zinc-300 dark:border-zinc-800 dark:focus:border-zinc-800 pl-9" id="nft_filter" type="text" autoComplete="on" placeholder="Filter by name or id" defaultValue="" />
+                                  <input aria-describedby="" className="block w-2/3 rounded bg-white shadow-sm dark:bg-zinc-900 sm:text-sm text-white placeholder:text-zinc-500 focus:outline focus:outline-2 focus:outline-offset-2 focus:outline-pink-500 focus:ring-0 focus:ring-offset-0 border-zinc-300 focus:border-zinc-300 dark:border-zinc-800 dark:focus:border-zinc-800 pl-9" id="nft_filter" type="text" autoComplete="on" placeholder="Filter by name or id" defaultValue="" onChange={handleFilter} />
                                 </div>
                               </div>
                               <nav className="flex cursor-pointer">
@@ -241,10 +255,10 @@ export default function Index() {
                             <ul role="list" className={
                               activeTab == 2 ? 'gap-4 grid grid-cols-3 items-start justify-start p-0' : 'gap-4 grid grid-cols-2 items-start justify-start p-0'
                             }>
-                              {available.map((item, idx) => (
+                              {available.filter(filterByInputText).map((item, idx) => (
                                 <li className="flex overflow-hidden rounded w-full h-full" key={`${idx}`}>
                                   <DragItem id={item}>
-                                    <NftImage uri={item.imageUrl} alt={item.name} />
+                                    <NftImage uri={item.imageUrl} alt={item.name} name={item.name} token_id={item.token_id} />
                                   </DragItem>
                                 </li>
                               ))}
@@ -277,6 +291,17 @@ export default function Index() {
                   </div>
                 </div>
               </div>
+
+              <DropZone id="dropzone">
+                <div className="flex gap-4 grid grid-cols-5">
+                  {selected.map((item) => (
+                    <div key={item.imageUrl}>
+                      <NftImage uri={item.imageUrl} alt={item.name} name={item.name} token_id={item.token_id} removeCallback={() => removeItem(item)} />
+                    </div>
+                  ))}
+                </div>
+              </DropZone>
+
             </Dialog>
           </Transition.Root>
         </DndContext>

@@ -1,10 +1,8 @@
 TODO: 
-- test vercel publish
 - logged in state
   - sign
     - error handling
     - success handling / confirming burn TX
-  - filter by name or id
 - scene state
   - load NFTs burned (needs pre-cache?)
   - get random scene
@@ -14,35 +12,3 @@ TODO:
 STARGAZE TESTNET: 
 - cw_sq721: 2092 (stars1ea3mv330ctvtvhcq2wca3qcwq6a4zt6q82awycjmxzutm2sf566qkxeh2u)
 
-
-npm install @dnd-kit/core
-
-
-const List = ({ data }) => {
-  const [value, setValue] = useState('')
-
-  return (
-    <div>
-      <input 
-        type="text"
-        value={value} 
-        onChange={e => setValue(e.target.value)} 
-      />
-
-      {data
-        .filter(item => {
-          if (!value) return true
-          if (item.title.includes(value) || item.text.includes(value)) {
-            return true
-          }
-        })
-        .map(item => (
-          <div>
-            <h1>{item.title}</h1>
-            <p>{item.text}</p>
-          </div>
-        ))
-      }
-    </div>
-  )
-}

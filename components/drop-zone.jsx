@@ -9,7 +9,7 @@ export function DropZone(props) {
   const { isOver, setNodeRef } = useDroppable({
     id: props.id,
   });
-  const base = 'relative flex flex-col w-full h-full transition-all rounded-2xl border-4 border-dashed border-pink-600 p-12 text-center hover:border-pink-200 focus:outline-none'
+  const base = 'relative flex flex-col w-full h-full transition-all rounded-2xl border-4 border-dashed border-pink-600 p-12 text-center hover:border-pink-700 focus:outline-none'
   const classes = isOver
     ? `${base} border-pink-300`
     : base
@@ -24,7 +24,7 @@ export function DropZone(props) {
       leaveFrom="opacity-100"
       leaveTo="opacity-0"
     >
-      <div className="fixed flex inset-0 top-24 p-12 pb-24 bg-gray-500/50 bg-opacity-75 transition-opacity">
+      <div className="fixed flex inset-0 top-24 right-[32rem] p-12 pb-24 bg-gray-500/50 bg-opacity-75 transition-opacity">
         <div ref={setNodeRef} className={classes}>
           {
             props.children.props.children.length > 0 ? (
@@ -40,9 +40,9 @@ export function DropZone(props) {
             )
           }
         </div>
-        <div className="pointer-events-none top-24 inset-y-0 right-0 flex max-w-full pl-0">
+        {/* <div className="pointer-events-none top-24 inset-y-0 right-0 flex max-w-full pl-0">
           <div className="w-screen max-w-lg"></div>
-        </div>
+        </div> */}
       </div>
     </Transition.Child>
   )
