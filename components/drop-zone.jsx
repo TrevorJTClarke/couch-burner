@@ -24,7 +24,7 @@ export function DropZone(props) {
       leaveFrom="opacity-100"
       leaveTo="opacity-0"
     >
-      <div className="fixed flex inset-0 top-24 right-[32rem] p-12 pb-24 bg-gray-500/50 bg-opacity-75 transition-opacity">
+      <div className="fixed flex inset-0 top-24 right-[32rem] p-12 pb-24 bg-gray-500/0 bg-opacity-75 transition-opacity">
         <div ref={setNodeRef} className={classes}>
           {
             props.children.props.children.length > 0 ? (

@@ -6,16 +6,19 @@ import { DndContext, DragOverlay } from '@dnd-kit/core'
 import { Dialog, Transition } from '@headlessui/react'
 import { useQuery, useLazyQuery } from '@apollo/client';
 import { XMarkIcon, Squares2X2Icon, MagnifyingGlassIcon } from '@heroicons/react/24/outline'
-import { DropZone, DragItem, Intro } from '../components'
+import { DropZone, DragItem, Intro, GagScene } from '../components'
 import NftImage from '../components/nft-image'
+import Scene from '../components/gag-test'
 import {
   chainName,
   OWNEDTOKENS,
+  getHttpUrl,
 } from '../config'
 
 export default function Index() {
   const [isLoading, setIsLoading] = useState(true);
   const [open, setOpen] = useState(false)
+  const [isPaused, setIsPaused] = useState(true)
   const [available, setAvailable] = useState([])
   const [selected, setSelected] = useState([])
   const [filterInput, setFilterInput] = useState('')
@@ -23,6 +26,7 @@ export default function Index() {
   const [activeTab, setActiveTab] = useState(1)
   const [activeView, setActiveView] = useState(1)
   const [getOwnedTokens, ownedTokensQuery] = useLazyQuery(OWNEDTOKENS);
+  const [dynImgs, setDynImgs] = useState([])
 
   // dynamic wallet/client connections
   const manager = useManager()
@@ -30,6 +34,7 @@ export default function Index() {
 
   function handleDragStart(event) {
     setActiveId(event.active.id)
+    setIsPaused(true)
   }
 
   function handleDragEnd(event) {
@@ -108,6 +113,15 @@ export default function Index() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [ownedTokensQuery.data]);
 
+  useEffect(() => {
+    // console.log('selected', selected);
+    const nftUrls = [...selected].map(s => getHttpUrl(s.imageUrl))
+    console.log('nftUrls', nftUrls);
+
+    setDynImgs(nftUrls)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selected, available]);
+
   const getData = async () => {
     setIsLoading(true);
     await Promise.all([getOwnedNFTs()]);
@@ -135,6 +149,9 @@ export default function Index() {
       })
     })
     if (burnMsgs.length <= 0) return;
+    console.log('burnMsgs,', burnMsgs);
+    // setIsPaused(false)
+    // return;
 
     const repo = manager.getWalletRepo(chainName)
     if (repo.isWalletDisconnected) await repo.connect(repo.wallets[0].walletName, true)
@@ -152,6 +169,7 @@ export default function Index() {
     try {
       const res = await signerClient.executeMultiple(senderAddr || address, burnMsgs, 'auto', '🔥 It!')
       console.log('signerClient res', res)
+      setIsPaused(false)
       // TODO:
       // if (res?.transactionHash) {
       //   setCurrentIbcStep(1)
@@ -181,8 +199,10 @@ export default function Index() {
         {activeView == 1 && !open && (
           <Intro openDialog={() => setOpen(true)} />
         )}
-
-        {/* TODO: Scene */}
+        
+        {activeView == 1 && open && (
+          <GagScene imgs={dynImgs} isPaused={isPaused} />
+        )}
 
         <DndContext onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
           <DragOverlay>
@@ -293,7 +313,7 @@ export default function Index() {
               </div>
 
               <DropZone id="dropzone">
-                <div className="flex gap-4 grid grid-cols-5">
+                <div className="hidden flex gap-4 grid grid-cols-5">
                   {selected.map((item) => (
                     <div key={item.imageUrl}>
                       <NftImage uri={item.imageUrl} alt={item.name} name={item.name} token_id={item.token_id} removeCallback={() => removeItem(item)} />
