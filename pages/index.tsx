@@ -1,6 +1,8 @@
 import Image from 'next/image'
 import { Fragment, useState, useEffect } from 'react'
 import { useChain, useManager } from '@cosmos-kit/react';
+import { GasPrice, calculateFee, StdFee } from "@cosmjs/stargate";
+import { cwMsgToEncodeObject } from "../contexts/cwMsgToEncodeObject"
 // import { WalletStatus } from '@cosmos-kit/core';
 import { DndContext, DragOverlay } from '@dnd-kit/core'
 import { Dialog, Transition } from '@headlessui/react'
@@ -20,10 +22,19 @@ import {
 } from '../config'
 
 function getLogFromError(str) {
-  const rgx = /Log:(?:[a-zA-Z ])+/g
-  const found = rgx.exec(str)
-  if (!found || found.length <= 0) return null
-  return `${found[0]}`.replace('Log: ', '')
+  const rgx = /log:(?:[a-zA-Z ])+/g
+  const found = rgx.exec(`${str}`.toLowerCase())
+  if (!found || found.length <= 0) return 'Transaction rejected by user'
+  return `${found[0]}`.replace('log: ', '')
+}
+
+function calcFee(gasLimit: number, gas_price: string): StdFee | undefined {
+  if (!gas_price) return;
+  const gasPrice = GasPrice.fromString(`${gas_price}`)
+  if (!gasPrice) return;
+
+  // Fee: (gas / exponent * price) example: 635024/1000000*0.04 = 0.025401 units
+  return calculateFee(gasLimit, gasPrice)
 }
 
 export default function Index() {
@@ -56,7 +67,6 @@ export default function Index() {
 
     if (over && over.id === 'dropzone') {
       setAvailable(prev => {
-        // const n = prev.filter(p => p.token_id != active.id.token_id)
         const n = prev.filter(p => `${p.collection_addr}${p.token_id}` != `${active.id.collection_addr}${active.id.token_id}`)
         return n
       })
@@ -183,9 +193,43 @@ export default function Index() {
       return;
     }
     const signerClient = await wallet.getSigningCosmWasmClient();
+    const sendAddr = `${senderAddr || address}`
+
+    let fee
     try {
-      const res = await signerClient.executeMultiple(`${senderAddr || address}`, burnMsgs, 'auto', '🔥 It!')
-      console.log('signerClient res', res)
+      const encodedMsgs = burnMsgs.map((msg) => {
+        return cwMsgToEncodeObject({
+          wasm: {
+            execute: {
+              contract_addr: msg.contractAddress,
+              msg: msg.msg,
+            }
+          }
+        }, sendAddr)
+      })
+      const simres = await signerClient.simulate(sendAddr, encodedMsgs, '🔥 It!')
+      if (simres && typeof simres === 'number') fee = simres
+    } catch(e) {
+      // display error UI
+      setIsPaused(true)
+      setTxProcessing(false)
+      setTxLoading(false)
+      setErrors([getLogFromError(e)])
+
+      setTimeout(() => {
+        setErrors([])
+      }, 10000)
+    }
+
+    const gasFee = fee ? calcFee(parseInt(fee * 1.3), '0.04ustars') : 'auto'
+
+    try {
+      const res = await signerClient.executeMultiple(
+        sendAddr,
+        burnMsgs,
+        gasFee,
+        '🔥 It!'
+      )
       if (res?.transactionHash) {
         setTxLoading(false)
         setTxProcessing(true)
