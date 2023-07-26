@@ -6,6 +6,10 @@
 @import "Loader.module.css";
 @import "404.module.css";
 
+html, body {
+  background: black;
+}
+
 .full-height {
   min-height: calc(100vh - 164px);
 }
