@@ -47,41 +47,41 @@ function App({ Component, pageProps }: AppProps) {
   };
 
   return (
-    <ChainProvider
-      chains={chains}
-      assetLists={assets}
-      wallets={[...keplrWallets, ...cosmostationWallets, ...leapWallets]}
-      walletConnectOptions={{
-        signClient: {
-          projectId: 'a8510432ebb71e6948cfd6cde54b70f7',
-          relayUrl: 'wss://relay.walletconnect.org',
-          metadata: {
-            name: 'Stargaze NFT Burner',
-            description: 'Be bad, burn some NFTs',
-            url: 'https://stargaze.zone/',
-            icons: [],
+    <div className="dark bg-black">
+      <Head>
+        <title>Stargaze NFT Burner</title>
+        <meta name="description" content="Be bad, burn some NFTs" />
+        <link rel="icon" href="/favicon.ico" />
+      </Head>
+      <ChainProvider
+        chains={chains}
+        assetLists={assets}
+        wallets={[...keplrWallets, ...cosmostationWallets, ...leapWallets]}
+        walletConnectOptions={{
+          signClient: {
+            projectId: 'a8510432ebb71e6948cfd6cde54b70f7',
+            relayUrl: 'wss://relay.walletconnect.org',
+            metadata: {
+              name: 'Stargaze NFT Burner',
+              description: 'Be bad, burn some NFTs',
+              url: 'https://stargaze.zone/',
+              icons: [],
+            },
           },
-        },
-      }}
-      wrappedWithChakra={false}
-      signerOptions={signerOptions}
-      walletModal={TailwindModal}
-    >
-      <ThemeProvider>
-        <Head>
-          <title>Stargaze NFT Burner</title>
-          <meta name="description" content="Be bad, burn some NFTs" />
-          <link rel="icon" href="/favicon.ico" />
-        </Head>
+        }}
+        wrappedWithChakra={false}
+        signerOptions={signerOptions}
+        walletModal={TailwindModal}
+      >
         <ApolloProvider client={client}>
-          <div className="min-h-screen h-full text-black bg-white dark:bg-black dark:text-white">
+          <div className="min-h-screen h-full bg-black text-white">
             <Header />
             <Component {...pageProps} />
             <Footer />
           </div>
         </ApolloProvider>
-      </ThemeProvider>
-    </ChainProvider>
+      </ChainProvider>
+    </div>
   );
 }
 

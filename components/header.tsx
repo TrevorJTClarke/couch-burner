@@ -4,7 +4,7 @@ import { WalletSection } from '../components';
 
 export const Header = () => {
   return (
-    <header className="sticky top-0 z-[99999] px-8 hidden h-24 w-full max-w-full bg-white border-b border-black/10 dark:border-zinc-800 dark:bg-black lg:flex lg:flex-row lg:items-center lg:justify-between">
+    <header className="sticky top-0 z-[99999] px-8 hidden h-24 w-full max-w-full border-b border-zinc-800 bg-black lg:flex lg:flex-row lg:items-center lg:justify-between">
       <div className="flex">
         <Link href="/">
           <div className="flex items-center transition-transform focus:scale-110 focus:outline-0 focus:drop-shadow-primary">
