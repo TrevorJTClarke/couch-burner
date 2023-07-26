@@ -89,6 +89,8 @@ function TvFace(props) {
   // const textRef = useRef()
   // useFrame((state) => (textRef.current.position.x = Math.sin(state.clock.elapsedTime) * 2))
   console.log('props.imgs', props.imgs);
+  let lastNft = props.imgs.length > 0 ? props.imgs[props.imgs.length - 1] : null
+
   return (
     <mesh position={[-5.15, 0, 1.1]} scale={[7.75, 7.75, 7.75]}>
       <planeGeometry args={[1.2, 1, 1]} />
@@ -104,7 +106,10 @@ function TvFace(props) {
 
           <Physics gravity={[0, -7, 0]} paused={props.isPaused}>
             <group>
-              {props.imgs.map((img, id) => (<ImageCubes img={img} id={id} key={id} />))}
+              {/* displays all */}
+              {/* {props.imgs.map((img, id) => (<ImageCubes img={img} id={id} key={id} />))} */}
+              {/* displays last 1 */}
+              {lastNft && (<ImageCubes img={lastNft} id={1} key={1} />)}
 
               <RigidBody
                 colliders={false}
