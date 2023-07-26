@@ -1,19 +1,31 @@
 TODO: 
-- design the scene with slots for images!
-- logged in state
-  - sign
-    - error handling
-    - success handling / confirming burn TX
+- error state
+- sign
+  - fix fee
+  - fix selected list visibility during animation
+  - error handling
+- Scenes to complete:
+  1. TV Breaking
+  2. Monty Foot Squish
+  3. Couch stack explode
+- ability to remove image
+  - try diff position not blocking scene?
 - scene state
-  - pause physics
-  - function to input image into couch scene
-  - load NFTs burned (needs pre-cache?)
   - get random scene
   - play scene physics
 
 
+hvr-bob
+
 STARGAZE TESTNET: 
 - cw_sq721: 2092 (stars1ea3mv330ctvtvhcq2wca3qcwq6a4zt6q82awycjmxzutm2sf566qkxeh2u)
+
+
+const [isLoading, setIsLoading] = useState(true);
+  const [txLoading, setTxLoading] = useState(false);
+  const [txProcessing, setTxProcessing] = useState(false);
+
+
 
 
 /*
