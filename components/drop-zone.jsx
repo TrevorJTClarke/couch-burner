@@ -24,14 +24,10 @@ export function DropZone(props) {
       leaveFrom="opacity-100"
       leaveTo="opacity-0"
     >
-      <div className="fixed flex inset-0 top-24 right-[32rem] p-12 pb-24 bg-gray-500/50 bg-opacity-75 transition-opacity">
+      <div className="fixed flex flex-col inset-0 top-24 right-[32rem] p-12 bg-gray-500/0 bg-opacity-75 transition-opacity">
         <div ref={setNodeRef} className={classes}>
           {
-            props.children.props.children.length > 0 ? (
-              <div>
-                {props.children}
-              </div>
-            ) : (
+            props.children.props.children.length > 0 ? '' : (
               <div className="my-auto flex flex-col text-centered">
                 <SquaresPlusIcon className="w-24 h-24 text-pink-600 mx-auto" />
                 <p className="mt-2 text-3xl font-bold tracking-tight text-gray-200 sm:text-4xl"> Drag & Drop </p>
@@ -40,9 +36,14 @@ export function DropZone(props) {
             )
           }
         </div>
-        {/* <div className="pointer-events-none top-24 inset-y-0 right-0 flex max-w-full pl-0">
-          <div className="w-screen max-w-lg"></div>
-        </div> */}
+
+        {
+          props.children.props.children.length > 0 ? (
+            <div>
+              {props.children}
+            </div>
+          ) : ''
+        }
       </div>
     </Transition.Child>
   )

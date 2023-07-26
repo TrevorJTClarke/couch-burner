@@ -6,16 +6,26 @@ import { DndContext, DragOverlay } from '@dnd-kit/core'
 import { Dialog, Transition } from '@headlessui/react'
 import { useQuery, useLazyQuery } from '@apollo/client';
 import { XMarkIcon, Squares2X2Icon, MagnifyingGlassIcon } from '@heroicons/react/24/outline'
-import { DropZone, DragItem, Intro } from '../components'
+import { DropZone, DragItem, Intro, GagScene } from '../components'
 import NftImage from '../components/nft-image'
+import { Fire } from '../components/fire'
+import Scene from '../components/gag-test'
+import { GagTvRendered } from '../components/gag-tv-rendered'
+import {GagFoot} from '../components/gag-foot'
+import {Test2} from '../components/gag-test-2'
 import {
   chainName,
   OWNEDTOKENS,
+  getHttpUrl,
 } from '../config'
 
 export default function Index() {
   const [isLoading, setIsLoading] = useState(true);
-  const [open, setOpen] = useState(false)
+  const [txLoading, setTxLoading] = useState(false);
+  const [txProcessing, setTxProcessing] = useState(false);
+  const [open, setOpen] = useState(true)
+  const [isPaused, setIsPaused] = useState(true)
+  const [errors, setErrors] = useState([])
   const [available, setAvailable] = useState([])
   const [selected, setSelected] = useState([])
   const [filterInput, setFilterInput] = useState('')
@@ -23,6 +33,7 @@ export default function Index() {
   const [activeTab, setActiveTab] = useState(1)
   const [activeView, setActiveView] = useState(1)
   const [getOwnedTokens, ownedTokensQuery] = useLazyQuery(OWNEDTOKENS);
+  const [dynImgs, setDynImgs] = useState([])
 
   // dynamic wallet/client connections
   const manager = useManager()
@@ -30,6 +41,7 @@ export default function Index() {
 
   function handleDragStart(event) {
     setActiveId(event.active.id)
+    setIsPaused(true)
   }
 
   function handleDragEnd(event) {
@@ -97,7 +109,6 @@ export default function Index() {
         t.token_id = t.tokenId
         return t
       })
-      console.log('adjustedTokens', adjustedTokens);
       
       setAvailable(adjustedTokens)
     }
@@ -107,6 +118,14 @@ export default function Index() {
     getExternalNfts()
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [ownedTokensQuery.data]);
+
+  useEffect(() => {
+    // console.log('selected', selected);
+    const nftUrls = [...selected].map(s => getHttpUrl(s.imageUrl))
+
+    setDynImgs(nftUrls)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selected, available]);
 
   const getData = async () => {
     setIsLoading(true);
@@ -135,6 +154,11 @@ export default function Index() {
       })
     })
     if (burnMsgs.length <= 0) return;
+    console.log('burnMsgs,', burnMsgs);
+    setTxLoading(true)
+    // setTxProcessing(true)
+    // setIsPaused(false)
+    // return;
 
     const repo = manager.getWalletRepo(chainName)
     if (repo.isWalletDisconnected) await repo.connect(repo.wallets[0].walletName, true)
@@ -150,22 +174,27 @@ export default function Index() {
     }
     const signerClient = await wallet.getSigningCosmWasmClient();
     try {
-      const res = await signerClient.executeMultiple(senderAddr || address, burnMsgs, 'auto', '🔥 It!')
+      const res = await signerClient.executeMultiple(`${senderAddr || address}`, burnMsgs, 'auto', '🔥 It!')
       console.log('signerClient res', res)
-      // TODO:
-      // if (res?.transactionHash) {
-      //   setCurrentIbcStep(1)
-
-      //   // TODO: Change to wait 10-30s for receive confirm (check receiver is owner)
-      //   // Check packet status for a few seconds before attempting Self-relay
-      //   setTimeout(() => {
-      //     setCurrentView(TransferView.RequiresRelayer)
-      //   }, 2000)
-      // }
+      if (res?.transactionHash) {
+        setTxLoading(false)
+        setTxProcessing(true)
+        setTimeout(() => {
+          setTxProcessing(false)
+          setIsPaused(false)
+        }, 2000)
+        setTimeout(() => {
+          setIsPaused(true)
+          setSelected([])
+        }, 10000)
+      }
     } catch (e) {
       // display error UI
       console.error('signingCosmWasmClient e', e)
-      // setCurrentView(TransferView.Error)
+      setIsPaused(true)
+      setTxProcessing(false)
+      setTxLoading(false)
+      setErrors([e])
     }
   }
 
@@ -181,8 +210,15 @@ export default function Index() {
         {activeView == 1 && !open && (
           <Intro openDialog={() => setOpen(true)} />
         )}
+        
+        {/* {activeView == 1 && open && (
+          <GagScene imgs={dynImgs} isPaused={isPaused} />
+        )} */}
+        {/* <GagFoot imgs={dynImgs} isPaused={isPaused} /> */}
 
-        {/* TODO: Scene */}
+        {activeView == 1 && open && (
+          <GagTvRendered imgs={dynImgs} isPaused={isPaused} />
+        )}
 
         <DndContext onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
           <DragOverlay>
@@ -251,30 +287,73 @@ export default function Index() {
                               </nav>
                             </div>
                           </div>
-                          <div className="relative flex-1 px-6 py-4 overflow-y-scroll">
-                            <ul role="list" className={
-                              activeTab == 2 ? 'gap-4 grid grid-cols-3 items-start justify-start p-0' : 'gap-4 grid grid-cols-2 items-start justify-start p-0'
-                            }>
-                              {available.filter(filterByInputText).map((item, idx) => (
-                                <li className="flex overflow-hidden rounded w-full h-full" key={`${idx}`}>
-                                  <DragItem id={item}>
-                                    <NftImage uri={item.imageUrl} alt={item.name} name={item.name} token_id={item.token_id} />
-                                  </DragItem>
-                                </li>
-                              ))}
-                            </ul>
-                          </div>
+
+                          {(available.length > 0 && !txLoading && !txProcessing) && (
+                            <div className="relative flex-1 px-6 py-4 overflow-y-scroll">
+                              <ul role="list" className={
+                                activeTab == 2 ? 'gap-4 grid grid-cols-3 items-start justify-start p-0' : 'gap-4 grid grid-cols-2 items-start justify-start p-0'
+                              }>
+                                {available.filter(filterByInputText).map((item, idx) => (
+                                  <li className="flex overflow-hidden rounded w-full h-full" key={`${idx}`}>
+                                    <DragItem id={item}>
+                                      <NftImage uri={item.imageUrl} alt={item.name} name={item.name} token_id={item.token_id} />
+                                    </DragItem>
+                                  </li>
+                                ))}
+                              </ul>
+                            </div>
+                          )}
+
+                          {isLoading && (
+                            <div className="relative flex-1 flex p-4 overflow-y-scroll min-h-full">
+                              <div className="w-full my-auto text-center">
+                                <div className="text-8xl -hue-rotate-90 gelatine">⚡️</div>
+                                <h3 className="mt-2 text-lg font-semibold text-gray-100 animate-pulse">Loading NFTs...</h3>
+                              </div>
+                            </div>
+                          )}
+
+                          {(!available.length && !isLoading) && (
+                            <div className="relative flex-1 flex p-4 overflow-y-scroll min-h-full">
+                              <div className="w-full my-auto text-center">
+                                <div className="text-6xl grayscale">😭</div>
+                                <h3 className="mt-2 text-lg font-semibold text-gray-100">No NFTs</h3>
+                                <p className="mt-2 text-sm text-gray-500">Go get some on the marketplace already!</p>
+                                <div>
+                                  <a href="" className="mt-8 button-3d text-white uppercase tracking-wider">
+                                    Stargaze Market
+                                  </a>
+                                </div>
+                              </div>
+                            </div>
+                          )}
+
+                          {txLoading && (
+                            <div className="relative flex-1 flex p-4 overflow-y-scroll min-h-full">
+                              <div className="w-[75%] m-auto text-center">
+                                <div className="text-6xl -hue-rotate-60 gelatine-slow">🔥</div>
+                                <h3 className="mt-2 text-lg font-semibold text-gray-100 animate-pulse">Confirm Transaction</h3>
+                                <p className="mt-2 text-sm text-gray-500">Please review the details in your wallet. Upon completion, your NFTs will be burned!</p>
+                              </div>
+                            </div>
+                          )}
+
+                          {txProcessing && (
+                            <div className="relative flex-1 flex p-4 overflow-y-scroll min-h-full">
+                              <div className="w-[75%] m-auto text-center">
+                                <div className="">
+                                  <Fire />
+                                </div>
+                                <h3 className="mt-2 text-lg font-semibold text-gray-100 animate-pulse">Burning...</h3>
+                                <p className="mt-2 text-sm text-gray-500">Processing your transaction, please be patient.</p>
+                              </div>
+                            </div>
+                          )}
+                          
                           
                           {selected.length > 0 && (
                             <div className="flex-shrink-0 border-t border-zinc-800 px-4 py-5 sm:px-6">
                               <div className="flex justify-end space-x-3">
-                                {/* <button
-                                type="button"
-                                className="rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50"
-                                onClick={() => setOpen(false)}
-                              >
-                                Cancel
-                              </button> */}
                                 <button
                                   type="submit"
                                   className="inline-flex justify-center rounded-md w-full bg-pink-600 px-3 py-3 text-sm font-semibold text-white shadow-sm hover:bg-pink-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-pink-600"
@@ -292,15 +371,18 @@ export default function Index() {
                 </div>
               </div>
 
-              <DropZone id="dropzone">
-                <div className="flex gap-4 grid grid-cols-5">
-                  {selected.map((item) => (
-                    <div key={item.imageUrl}>
-                      <NftImage uri={item.imageUrl} alt={item.name} name={item.name} token_id={item.token_id} removeCallback={() => removeItem(item)} />
-                    </div>
-                  ))}
-                </div>
-              </DropZone>
+              {(available.length && !txLoading && !txProcessing && isPaused) && (
+                <DropZone id="dropzone">
+                  {/* <div className="flex gap-4 grid grid-cols-5"> */}
+                  <div className="flex flex-wrap justify-start pt-12">
+                    {selected.map((item) => (
+                      <div key={item.imageUrl} className="max-w-[100px] -skew-y-6 float-shadow">
+                        <NftImage uri={item.imageUrl} alt={item.name} removeCallback={() => removeItem(item)} />
+                      </div>
+                    ))}
+                  </div>
+                </DropZone>
+              )}
 
             </Dialog>
           </Transition.Root>

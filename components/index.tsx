@@ -7,3 +7,4 @@ export * from './footer';
 export * from './drop-zone';
 export * from './drag-item';
 export * from './intro';
+export * from './gag-scene';

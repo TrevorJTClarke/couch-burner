@@ -25,14 +25,16 @@ export default function NftImage({ uri, alt, className, name, token_id, removeCa
   return (
     <div className="relative group block rounded outline outline-2 outline-pink-600 hover:outline-pink-600 outline-offset-2">
       <img src={imageSource} height="100%" width="100%" alt={alt || ''} className="rounded" />
-      <div className="absolute flex justify-between transition-all opacity-0 group-hover:opacity-100 bg-black/50 text-gray-100 text-xs rounded-b left-0 right-0 bottom-0 p-2">
-        {name && (
-          <p>{name}</p>
-        )}
-        {token_id && (
-          <p>#{token_id}</p>
-        )}
-      </div>
+      {(name || token_id) && (
+        <div className="absolute flex justify-between transition-all opacity-0 group-hover:opacity-100 bg-black/50 text-gray-100 text-xs rounded-b left-0 right-0 bottom-0 p-2">
+          {name && (
+            <p>{name}</p>
+          )}
+          {token_id && (
+            <p>#{token_id}</p>
+          )}
+        </div>
+      )}
       {removeCallback && (
         <div onClick={callback} className="absolute transition-all opacity-0 group-hover:opacity-100 bg-black/50 text-red-500 hover:text-red-300 cursor-pointer rounded top-2 right-2 p-2">
           <TrashIcon className="w-6 h-6"/>
