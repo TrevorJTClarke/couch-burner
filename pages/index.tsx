@@ -5,7 +5,7 @@ import { useChain, useManager } from '@cosmos-kit/react';
 import { DndContext, DragOverlay } from '@dnd-kit/core'
 import { Dialog, Transition } from '@headlessui/react'
 import { useQuery, useLazyQuery } from '@apollo/client';
-import { XMarkIcon, Squares2X2Icon, MagnifyingGlassIcon } from '@heroicons/react/24/outline'
+import { XMarkIcon, Squares2X2Icon, MagnifyingGlassIcon, XCircleIcon } from '@heroicons/react/24/outline'
 import { DropZone, DragItem, Intro, GagScene } from '../components'
 import NftImage from '../components/nft-image'
 import { Fire } from '../components/fire'
@@ -19,11 +19,18 @@ import {
   getHttpUrl,
 } from '../config'
 
+function getLogFromError(str) {
+  const rgx = /Log:(?:[a-zA-Z ])+/g
+  const found = rgx.exec(str)
+  if (!found || found.length <= 0) return null
+  return `${found[0]}`.replace('Log: ', '')
+}
+
 export default function Index() {
   const [isLoading, setIsLoading] = useState(true);
   const [txLoading, setTxLoading] = useState(false);
   const [txProcessing, setTxProcessing] = useState(false);
-  const [open, setOpen] = useState(true)
+  const [open, setOpen] = useState(false)
   const [isPaused, setIsPaused] = useState(true)
   const [errors, setErrors] = useState([])
   const [available, setAvailable] = useState([])
@@ -49,11 +56,13 @@ export default function Index() {
 
     if (over && over.id === 'dropzone') {
       setAvailable(prev => {
-        const n = prev.filter(p => p.imageUrl != active.id.imageUrl)
+        // const n = prev.filter(p => p.token_id != active.id.token_id)
+        const n = prev.filter(p => `${p.collection_addr}${p.token_id}` != `${active.id.collection_addr}${active.id.token_id}`)
         return n
       })
       setSelected(prev => {
-        if (![...prev].map(p => p.imageUrl).includes(active.id.imageUrl)) prev.push(active.id)
+        // TODO: Change to token_id && contract
+        if (![...prev].map(p => `${p.collection_addr}${p.token_id}`).includes(`${active.id.collection_addr}${active.id.token_id}`)) prev.push(active.id)
         return prev
       })
       setActiveId(null)
@@ -63,11 +72,11 @@ export default function Index() {
   function removeItem(item) {
     setOpen(true)
     setSelected(prev => {
-      const n = prev.filter(p => p.imageUrl != item.imageUrl)
+      const n = prev.filter(p => `${p.collection_addr}${p.token_id}` != `${item.collection_addr}${item.token_id}`)
       return n
     })
     setAvailable(prev => {
-      if (![...prev].map(p => p.imageUrl).includes(item.imageUrl)) prev.push(item)
+      if (![...prev].map(p => `${p.collection_addr}${p.token_id}`).includes(`${item.collection_addr}${item.token_id}`)) prev.push(item)
       return prev
     })
   }
@@ -141,6 +150,7 @@ export default function Index() {
 
   const burnNotice = async () => {
     const burnMsgs = []
+    setErrors([])
 
     // loop all the selected NFTs and append burn msgs
     selected.forEach(item => {
@@ -186,7 +196,10 @@ export default function Index() {
         setTimeout(() => {
           setIsPaused(true)
           setSelected([])
+          setErrors([])
         }, 10000)
+      } else {
+        setErrors(['Transaction could not complete correctly, try again'])
       }
     } catch (e) {
       // display error UI
@@ -194,7 +207,11 @@ export default function Index() {
       setIsPaused(true)
       setTxProcessing(false)
       setTxLoading(false)
-      setErrors([e])
+      setErrors([getLogFromError(e)])
+
+      setTimeout(() => {
+        setErrors([])
+      }, 10000)
     }
   }
 
@@ -287,6 +304,28 @@ export default function Index() {
                               </nav>
                             </div>
                           </div>
+
+                          {errors.length > 0 && (
+                            <div className="py-4 border-b border-zinc-800">
+                              <div className="rounded-md bg-red-900 mx-6 p-4">
+                                <div className="flex">
+                                  <div className="flex-shrink-0">
+                                    <XCircleIcon className="h-5 w-5 text-red-100" aria-hidden="true" />
+                                  </div>
+                                  <div className="ml-3">
+                                    <h3 className="text-sm font-medium text-red-100">There {errors.length > 1 ? `were ${errors.length} errors` : 'was an error'} with your transaction</h3>
+                                    <div className="mt-2 text-sm text-red-300">
+                                      <ul role="list" className="list-disc space-y-1 pl-5">
+                                        {errors.map((err, idx) => (
+                                          <li key={idx}>{err}</li>
+                                        ))}
+                                      </ul>
+                                    </div>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          )}
 
                           {(available.length > 0 && !txLoading && !txProcessing) && (
                             <div className="relative flex-1 px-6 py-4 overflow-y-scroll">
