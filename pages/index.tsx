@@ -1,5 +1,5 @@
 import Image from 'next/image'
-import { Fragment, useState, useEffect } from 'react'
+import { Fragment, useState, useEffect, Suspense } from 'react'
 import { useChain, useManager } from '@cosmos-kit/react';
 import { GasPrice, calculateFee, StdFee } from "@cosmjs/stargate";
 import { cwMsgToEncodeObject } from "../contexts/cwMsgToEncodeObject"
@@ -9,11 +9,13 @@ import { Dialog, Transition } from '@headlessui/react'
 import { useQuery, useLazyQuery } from '@apollo/client';
 import { XMarkIcon, Squares2X2Icon, MagnifyingGlassIcon, XCircleIcon } from '@heroicons/react/24/outline'
 import { DropZone, DragItem, Intro, GagScene } from '../components'
+import { rand } from '../config/defaults'
 import NftImage from '../components/nft-image'
 import { Fire } from '../components/fire'
 import Scene from '../components/gag-test'
 import { GagTvRendered } from '../components/gag-tv-rendered'
-import {GagFoot} from '../components/gag-foot'
+import { GagSimpsonsRoom } from '../components/gag-simpsons-room'
+import { GagFoot } from '../components/gag-foot'
 import {Test2} from '../components/gag-test-2'
 import {
   chainName,
@@ -41,7 +43,7 @@ export default function Index() {
   const [isLoading, setIsLoading] = useState(true);
   const [txLoading, setTxLoading] = useState(false);
   const [txProcessing, setTxProcessing] = useState(false);
-  const [open, setOpen] = useState(false)
+  const [open, setOpen] = useState(true)
   const [isPaused, setIsPaused] = useState(true)
   const [errors, setErrors] = useState([])
   const [available, setAvailable] = useState([])
@@ -50,6 +52,7 @@ export default function Index() {
   const [activeId, setActiveId] = useState(null)
   const [activeTab, setActiveTab] = useState(1)
   const [activeView, setActiveView] = useState(1)
+  const [activeGag, setActiveGag] = useState(rand(1, 4))
   const [getOwnedTokens, ownedTokensQuery] = useLazyQuery(OWNEDTOKENS);
   const [dynImgs, setDynImgs] = useState([])
 
@@ -271,14 +274,23 @@ export default function Index() {
         {activeView == 1 && !open && (
           <Intro openDialog={() => setOpen(true)} />
         )}
-        
-        {/* {activeView == 1 && open && (
-          <GagScene imgs={dynImgs} isPaused={isPaused} />
-        )} */}
-        {/* <GagFoot imgs={dynImgs} isPaused={isPaused} /> */}
 
+        {/* <GagSimpsonsRoom imgs={dynImgs} isPaused={isPaused} /> */}
+        {/* <GagFoot imgs={dynImgs} isPaused={isPaused} /> */}
+        {/* <GagTvRendered imgs={dynImgs} isPaused={isPaused} /> */}
+        
         {activeView == 1 && open && (
-          <GagTvRendered imgs={dynImgs} isPaused={isPaused} />
+          <Suspense>
+            {activeGag == 1 && (
+              <GagSimpsonsRoom imgs={dynImgs} isPaused={isPaused} />
+            )}
+            {activeGag == 2 && (
+              <GagFoot imgs={dynImgs} isPaused={isPaused} />
+            )}
+            {activeGag == 3 && (
+              <GagTvRendered imgs={dynImgs} isPaused={isPaused} />
+            )}
+          </Suspense>
         )}
 
         <DndContext onDragStart={handleDragStart} onDragEnd={handleDragEnd}>

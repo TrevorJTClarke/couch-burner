@@ -1,27 +1,18 @@
 import { useRef, useState, useEffect, createRef } from 'react'
 import * as THREE from "three"
 import { Canvas, useFrame, useLoader, useThree, useStore } from "@react-three/fiber"
-import { RenderTexture, PerspectiveCamera, OrthographicCamera, OrbitControls, Environment, useTexture, Image, AsciiRenderer, Decal, useBox, Box, Torus, Stars, Cloud } from "@react-three/drei"
+import { RenderTexture, PerspectiveCamera, OrthographicCamera, OrbitControls, Environment, useTexture, Image, AsciiRenderer, Decal, useBox, Box, Torus, Stars, Cloud, CameraShake } from "@react-three/drei"
 // import { Physics, useSphere, usePlane, useBox } from "@react-three/cannon"
 import { Physics, MeshCollider, RigidBody } from "@react-three/rapier"
-import { EffectComposer, N8AO, SMAA, Pixelation, DepthOfField, Bloom, Noise, Scanline, Vignette, DotScreen } from "@react-three/postprocessing"
+import { EffectComposer, N8AO, SMAA, Pixelation, DepthOfField, Bloom, Noise, Scanline, Vignette, DotScreen, ChromaticAberration } from "@react-three/postprocessing"
 import { BlendFunction } from 'postprocessing'
-// import { STLLoader } from 'three/addons/loaders/STLLoader'
-import { OBJLoader } from 'three/examples/jsm/loaders/OBJLoader'
+import { rand } from '../config/defaults'
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader'
 
-const rfs = THREE.MathUtils.randFloatSpread
-const rand = THREE.MathUtils.randFloatSpread
-const sphereGeometry = new THREE.SphereGeometry(1, 32, 32)
-const boxGeometry = new THREE.BoxGeometry(20, 2, 2, 32, 32, 32)
-// const baubleMaterial = new THREE.MeshStandardMaterial({ color: "#db2777", roughness: 0, envMapIntensity: 1 })
 const baubleMaterial = new THREE.MeshStandardMaterial({ color: "#222", roughness: 0, envMapIntensity: 1 })
-
 const loader = new THREE.TextureLoader();
-// const stlloader = new STLLoader();
 
 function Scene(props) {
-  // const gltf = useLoader(GLTFLoader, '/couch_nfts_cam2.gltf')
   const gltf = useLoader(GLTFLoader, '/tv_close2.gltf')
 
   gltf.scene.scale.x = 15
@@ -31,12 +22,7 @@ function Scene(props) {
   gltf.scene.position.y = -3
   gltf.scene.receiveShadow = true
   gltf.scene.castShadow = true
-  console.log('gltf', gltf);
 
-  // useFrame((state) => {
-  //   // console.log('state', state);
-  //   state.camera = gltf.cameras[0]
-  // })
   return <primitive object={gltf.scene} castShadow />
 }
 
@@ -85,10 +71,6 @@ function ImageCubes(props) {
 }
 
 function TvFace(props) {
-  // const mat = useRef()
-  // const textRef = useRef()
-  // useFrame((state) => (textRef.current.position.x = Math.sin(state.clock.elapsedTime) * 2))
-  console.log('props.imgs', props.imgs);
   let lastNft = props.imgs.length > 0 ? props.imgs[props.imgs.length - 1] : null
 
   return (
@@ -153,6 +135,7 @@ function Dodecahedron(props) {
 export const GagTvRendered = (props) => {
   const parentRef = createRef()
   const sceneRef = createRef()
+  const [randomEffect] = useState(rand(1, 5))
   const [aspectRatio, setAspectRatio] = useState(1/1)
 
   useEffect(() => {
@@ -241,10 +224,8 @@ export const GagTvRendered = (props) => {
           <meshPhysicalMaterial color="#db2777" />
         </Box>
 
-        <OrbitControls />
-        {/* <OrbitControls autoRotate autoRotateSpeed={0.6} enablePan={false} enableZoom={false} minPolarAngle={Math.PI / 4} maxPolarAngle={Math.PI / 4} /> */}
-        {/* <OrbitControls enablePan={true} enableZoom={true} minPolarAngle={Math.PI / 4} maxPolarAngle={Math.PI / 4} /> */}
-        {/* <OrbitControls enableDamping={true} enablePan={true} enableRotate={false} enableZoom={true} minPolarAngle={Math.PI / 4} maxPolarAngle={Math.PI / 4} /> */}
+        {/* <OrbitControls /> */}
+        <OrbitControls enablePan={false} enableRotate={false} enableZoom={false} />
 
         {/* <AsciiRenderer bgColor="transparent" fgColor="#db2777" /> */}
         {/* <fog attach="fog" args={['#202020', 8, 50]} /> */}
@@ -273,6 +254,32 @@ export const GagTvRendered = (props) => {
           <Vignette eskil={false} offset={0.2} darkness={0.9} />
           <DepthOfField target={[0, 0, -2.5]} focusRange={0.05} bokehScale={30} />
         </EffectComposer> */}
+
+        {randomEffect == 1 && (
+          <EffectComposer disableNormalPass multisampling={0}>
+            <Noise opacity={0.2} />
+            <Scanline blendFunction={BlendFunction.OVERLAY} density={1.25} />
+            <ChromaticAberration offset={[0.001, 0.001]} />
+          </EffectComposer>
+
+        )}
+        {randomEffect == 2 && (
+          <EffectComposer disableNormalPass multisampling={0}>
+            <Noise opacity={0.2} />
+            <Scanline blendFunction={BlendFunction.OVERLAY} density={1.25} />
+            <DepthOfField focusDistance={0.3} focalLength={5} bokehScale={4} height={100} />
+            <Bloom luminanceThreshold={0.1} luminanceSmoothing={0.9} height={500} />
+            <Noise opacity={0.01} />
+            <Vignette eskil={false} offset={0.2} darkness={0.9} />
+          </EffectComposer>
+        )}
+        {randomEffect == 3 && (
+          <EffectComposer disableNormalPass multisampling={0}>
+            <Pixelation granularity={8} />
+            <Noise opacity={0.05} />
+          </EffectComposer>
+        )}
+        <CameraShake maxYaw={0.005} maxPitch={0.005} maxRoll={0.005} yawFrequency={0.01} pitchFrequency={0.01} rollFrequency={0.01} />
       </Canvas>
     </div>
   )
