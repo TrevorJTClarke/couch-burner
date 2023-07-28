@@ -43,7 +43,7 @@ export default function Index() {
   const [isLoading, setIsLoading] = useState(true);
   const [txLoading, setTxLoading] = useState(false);
   const [txProcessing, setTxProcessing] = useState(false);
-  const [open, setOpen] = useState(true)
+  const [open, setOpen] = useState(false)
   const [isPaused, setIsPaused] = useState(true)
   const [errors, setErrors] = useState([])
   const [available, setAvailable] = useState([])
